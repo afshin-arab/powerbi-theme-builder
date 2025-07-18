@@ -1,3 +1,4 @@
+# app.py
 import streamlit as st
 import json
 import pandas as pd
@@ -5,8 +6,7 @@ import altair as alt
 
 st.set_page_config(page_title="Power BI Theme Builder", layout="wide")
 
-# -----------------------------------------------
-# Utils
+# Utility Functions
 def load_json(file):
     try:
         return json.load(file)
@@ -49,22 +49,17 @@ def render_matrix_table(data, font, text_color):
         'color': text_color
     }))
 
-# -----------------------------------------------
-# Sidebar: Theme Input or Upload
+# Sidebar - Load or New Theme
 st.sidebar.title("🧩 Theme Controls")
 load_option = st.sidebar.radio("Start From", ["New Theme", "Upload Theme"])
-
 theme = {}
-
 if load_option == "Upload Theme":
     uploaded = st.sidebar.file_uploader("Upload JSON Theme", type="json")
     if uploaded:
         theme = load_json(uploaded)
 
-# -----------------------------------------------
-# Theme Editor Section
+# Theme Builder UI
 st.title("🎨 Power BI Theme Builder")
-
 theme["name"] = st.text_input("Theme Name", theme.get("name", "My Power BI Theme"))
 
 st.subheader("1. Base Colors")
@@ -81,74 +76,87 @@ for i in range(8):
         color = st.color_picker(f"Color {i+1}", data_colors[i] if i < len(data_colors) else "#CCCCCC")
         new_data_colors.append(color)
 
-st.subheader("3. Font Settings")
+st.subheader("3. Diverging & Sentiment Colors")
+min_color = st.color_picker("Minimum (Negative)", theme.get("minimum", "#FF0000"))
+center_color = st.color_picker("Center (Neutral)", theme.get("center", "#FFFF00"))
+max_color = st.color_picker("Maximum (Positive)", theme.get("maximum", "#00B050"))
+
+kpi_good = st.color_picker("KPI Good", theme.get("kpi", {}).get("*", {}).get("goodColor", "#00B050"))
+kpi_neutral = st.color_picker("KPI Neutral", theme.get("kpi", {}).get("*", {}).get("neutralColor", "#FFD700"))
+kpi_bad = st.color_picker("KPI Bad", theme.get("kpi", {}).get("*", {}).get("badColor", "#FF0000"))
+
+st.subheader("4. Font Settings")
 powerbi_fonts = ["Segoe UI", "DIN", "Arial", "Calibri", "Verdana"]
 font = st.selectbox("Font Family", powerbi_fonts, index=powerbi_fonts.index(theme.get("text", {}).get("fontFamily", "Segoe UI")))
 title_size = st.slider("Title Font Size", 10, 32, theme.get("textClasses", {}).get("title", {}).get("fontSize", 16))
 label_size = st.slider("Label Font Size", 8, 24, theme.get("textClasses", {}).get("label", {}).get("fontSize", 12))
 
-st.subheader("4. Visual Options")
+st.subheader("5. UI & Visual Settings")
 border = st.checkbox("Enable Borders", theme.get("visualDefaults", {}).get("border", True))
 shadow = st.checkbox("Enable Shadows", theme.get("visualDefaults", {}).get("shadow", False))
+border_radius = st.slider("Border Radius", 0, 10, theme.get("visualDefaults", {}).get("borderRadius", 0))
 slicer_style = st.selectbox("Slicer Style", ["Dropdown", "Tile", "Between"], index=0)
 
-# Final theme object
+st.subheader("6. Label & Format Settings")
+currency_symbol = st.text_input("Currency Symbol", theme.get("numberFormat", {}).get("currency", "$"))
+currency_format = st.text_input("Currency Format", theme.get("numberFormat", {}).get("currencyFormat", "$#,0.00"))
+percent_format = st.text_input("Percent Format", theme.get("numberFormat", {}).get("percentFormat", "#,0.00%"))
+decimal_places = st.slider("Decimal Places", 0, 6, theme.get("numberFormat", {}).get("decimalPlaces", 2))
+
+# Build JSON Object
 theme = {
     "name": theme["name"],
     "dataColors": new_data_colors,
     "background": bg,
     "foreground": fg,
     "tableAccent": accent,
-    "text": {
-        "fontFamily": font
-    },
+    "minimum": min_color,
+    "center": center_color,
+    "maximum": max_color,
+    "text": {"fontFamily": font},
     "visualDefaults": {
         "border": border,
-        "shadow": shadow
+        "shadow": shadow,
+        "borderRadius": border_radius
     },
     "textClasses": {
-        "title": {
-            "fontSize": title_size,
-            "fontFace": font,
-            "color": fg
-        },
-        "label": {
-            "fontSize": label_size,
-            "fontFace": font,
-            "color": fg
-        }
+        "title": {"fontSize": title_size, "fontFace": font, "color": fg},
+        "label": {"fontSize": label_size, "fontFace": font, "color": fg}
     },
-    "slicer": {
-        "style": slicer_style
+    "slicer": {"style": slicer_style},
+    "numberFormat": {
+        "currency": currency_symbol,
+        "currencyFormat": currency_format,
+        "percentFormat": percent_format,
+        "decimalPlaces": decimal_places
+    },
+    "kpi": {
+        "*": {
+            "goodColor": kpi_good,
+            "neutralColor": kpi_neutral,
+            "badColor": kpi_bad
+        }
     }
 }
 
-# -----------------------------------------------
-# Live Preview Section
+# Preview Section
 st.markdown("---")
 st.header("🔍 Live Preview")
-
-sample_data = generate_sample_data()
+data = generate_sample_data()
 preview_cols = st.columns(3)
-
 with preview_cols[0]:
     st.markdown(f"<h4 style='font-family:{font}; color:{fg}'>Bar Chart</h4>", unsafe_allow_html=True)
-    render_bar_chart(sample_data, new_data_colors, font)
-
+    render_bar_chart(data, new_data_colors, font)
 with preview_cols[1]:
     st.markdown(f"<h4 style='font-family:{font}; color:{fg}'>KPI Card</h4>", unsafe_allow_html=True)
     render_kpi_card("92%", "Uptime", new_data_colors[0], font)
-
 with preview_cols[2]:
-    render_matrix_table(sample_data, font, fg)
+    render_matrix_table(data, font, fg)
 
-# -----------------------------------------------
-# JSON Output + Download
+# Download JSON
 st.markdown("---")
 st.header("📄 Theme JSON Output")
-
 st.json(theme)
-
 st.download_button(
     label="📥 Download JSON Theme",
     data=json.dumps(theme, indent=2),
