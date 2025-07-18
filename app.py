@@ -81,27 +81,15 @@ min_color = st.color_picker("Minimum (Negative)", theme.get("minimum", "#FF0000"
 center_color = st.color_picker("Center (Neutral)", theme.get("center", "#FFFF00"))
 max_color = st.color_picker("Maximum (Positive)", theme.get("maximum", "#00B050"))
 
-kpi_good = st.color_picker("KPI Good", theme.get("kpi", {}).get("*", {}).get("goodColor", "#00B050"))
-kpi_neutral = st.color_picker("KPI Neutral", theme.get("kpi", {}).get("*", {}).get("neutralColor", "#FFD700"))
-kpi_bad = st.color_picker("KPI Bad", theme.get("kpi", {}).get("*", {}).get("badColor", "#FF0000"))
+good_color = st.color_picker("Good", theme.get("good", "#00B050"))
+neutral_color = st.color_picker("Neutral", theme.get("neutral", "#FFD700"))
+bad_color = st.color_picker("Bad", theme.get("bad", "#FF0000"))
 
 st.subheader("4. Font Settings")
 powerbi_fonts = ["Segoe UI", "DIN", "Arial", "Calibri", "Verdana"]
-font = st.selectbox("Font Family", powerbi_fonts, index=powerbi_fonts.index(theme.get("text", {}).get("fontFamily", "Segoe UI")))
+font = st.selectbox("Font Family", powerbi_fonts, index=powerbi_fonts.index(theme.get("textClasses", {}).get("title", {}).get("fontFace", "Segoe UI")))
 title_size = st.slider("Title Font Size", 10, 32, theme.get("textClasses", {}).get("title", {}).get("fontSize", 16))
 label_size = st.slider("Label Font Size", 8, 24, theme.get("textClasses", {}).get("label", {}).get("fontSize", 12))
-
-st.subheader("5. UI & Visual Settings")
-border = st.checkbox("Enable Borders", theme.get("visualDefaults", {}).get("border", True))
-shadow = st.checkbox("Enable Shadows", theme.get("visualDefaults", {}).get("shadow", False))
-border_radius = st.slider("Border Radius", 0, 10, theme.get("visualDefaults", {}).get("borderRadius", 0))
-slicer_style = st.selectbox("Slicer Style", ["Dropdown", "Tile", "Between"], index=0)
-
-st.subheader("6. Label & Format Settings")
-currency_symbol = st.text_input("Currency Symbol", theme.get("numberFormat", {}).get("currency", "$"))
-currency_format = st.text_input("Currency Format", theme.get("numberFormat", {}).get("currencyFormat", "$#,0.00"))
-percent_format = st.text_input("Percent Format", theme.get("numberFormat", {}).get("percentFormat", "#,0.00%"))
-decimal_places = st.slider("Decimal Places", 0, 6, theme.get("numberFormat", {}).get("decimalPlaces", 2))
 
 # Build JSON Object
 theme = {
@@ -113,28 +101,19 @@ theme = {
     "minimum": min_color,
     "center": center_color,
     "maximum": max_color,
-    "text": {"fontFamily": font},
-    "visualDefaults": {
-        "border": border,
-        "shadow": shadow,
-        "borderRadius": border_radius
-    },
+    "good": good_color,
+    "neutral": neutral_color,
+    "bad": bad_color,
     "textClasses": {
-        "title": {"fontSize": title_size, "fontFace": font, "color": fg},
-        "label": {"fontSize": label_size, "fontFace": font, "color": fg}
-    },
-    "slicer": {"style": slicer_style},
-    "numberFormat": {
-        "currency": currency_symbol,
-        "currencyFormat": currency_format,
-        "percentFormat": percent_format,
-        "decimalPlaces": decimal_places
-    },
-    "kpi": {
-        "*": {
-            "goodColor": kpi_good,
-            "neutralColor": kpi_neutral,
-            "badColor": kpi_bad
+        "title": {
+            "fontFace": font,
+            "color": fg,
+            "fontSize": title_size
+        },
+        "label": {
+            "fontFace": font,
+            "color": fg,
+            "fontSize": label_size
         }
     }
 }
