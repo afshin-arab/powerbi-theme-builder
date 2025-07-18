@@ -1,7 +1,6 @@
 import streamlit as st
 import json
 import pandas as pd
-import matplotlib.pyplot as plt
 import altair as alt
 
 st.set_page_config(page_title="Power BI Theme Builder", layout="wide")
